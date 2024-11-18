@@ -209,7 +209,8 @@ public partial class Goozma : ModNPC, ISubjectOfNPC<Goozma>
     public ref float Time => ref NPC.ai[0];
     public ref float Attack => ref NPC.ai[1];
     public ref float Phase => ref NPC.ai[2];
-    public ref NPC ActiveSlime => ref Main.npc[(int)NPC.ai[3]];
+    public ref float ActiveSlimeIndex => ref NPC.ai[3]; // TODO -- Update all references to ai[3] to use this instead.
+    public ref NPC ActiveSlime => ref Main.npc[(int)ActiveSlimeIndex];
 
     public NPCAimedTarget Target => NPC.ai[3] < 0 ? NPC.GetTargetData() : (ActiveSlime.GetTargetData().Invalid ? NPC.GetTargetData() : ActiveSlime.GetTargetData());
 
@@ -495,118 +496,8 @@ public partial class Goozma : ModNPC, ISubjectOfNPC<Goozma>
                 break;
 
             case 0:
-
                 if (Attack == (int)AttackList.SpawnSlime) {
-
-                    if (Main.netMode != NetmodeID.MultiplayerClient) {
-                        NPC.defense = 1000;
-                        NPC.takenDamageMultiplier = 0.1f;
-
-                        if (Time > 5 && Time < 45) {
-                            NPC.TargetClosestUpgraded();
-                            NPC.direction = NPC.DirectionTo(NPC.GetTargetData().Center).X > 0 ? 1 : -1;
-                            NPC.velocity = Vector2.Lerp(NPC.velocity, NPC.DirectionTo(NPC.GetTargetData().Center) * Math.Max(NPC.Distance(NPC.GetTargetData().Center) - 150, 0) * 0.12f, 0.1f);
-
-                            NPC.position += Main.rand.NextVector2Circular(6, 6);
-                            NPC.netUpdate = true;
-                        }
-
-                        if (Time > 42 && Time <= 50 && !(NPC.ai[3] < 0 || NPC.ai[3] >= Main.maxNPCs)) {
-                            KillSlime(currentSlime);
-                            NPC.netUpdate = true;
-                        }
-                    }
-
-                    if (Main.netMode != NetmodeID.Server && Time > 5 && Time < 45) {
-                        for (int i = 0; i < 3; i++) {
-                            Vector2 inward = NPC.Center + Main.rand.NextVector2Circular(70, 70) + Main.rand.NextVector2CircularEdge(100 - Time, 100 - Time);
-
-                            CalamityHunt.particles.Add(Particle.Create<ChromaticEnergyDust>(particle => {
-                                particle.position = inward;
-                                particle.velocity = inward.DirectionTo(NPC.Center) * Main.rand.NextFloat(3f);
-                                particle.scale = 1f;
-                                particle.color = Color.White;
-                                particle.colorData = new ColorOffsetData(true, NPC.localAI[0]);
-                            }));
-                        }
-                    }
-
-                    if (Time == 50) {
-                        NPC.velocity *= -1f;
-
-                        if (Main.netMode != NetmodeID.Server) {
-                            for (int i = 0; i < 45; i++) {
-                                Vector2 outward = NPC.Center + Main.rand.NextVector2Circular(10, 10);
-
-                                CalamityHunt.particles.Add(Particle.Create<ChromaticEnergyDust>(particle => {
-                                    particle.position = outward;
-                                    particle.velocity = outward.DirectionFrom(NPC.Center) * Main.rand.NextFloat(3f, 10f);
-                                    particle.scale = Main.rand.NextFloat(1f, 2f);
-                                    particle.color = Color.White;
-                                    particle.colorData = new ColorOffsetData(true, NPC.localAI[0]);
-                                }));
-                            }
-                        }
-
-
-                        //for (int i = 0; i < Main.rand.Next(3, 8); i++)
-                        //{
-                        //    NPC slime = NPC.NewNPCDirect(NPC.GetSource_FromAI(), (int)NPC.Center.X, (int)NPC.Center.Y - 50, Main.rand.Next(SlimeUtils.SlimeIDs));
-                        //    slime.velocity = new Vector2(Main.rand.Next(-4, 4), Main.rand.Next(-7, -5));
-                        //    if (Main.rand.NextBool(10))
-                        //    {
-                        //        NPC jellyfish = NPC.NewNPCDirect(NPC.GetSource_FromAI(), (int)NPC.Center.X, (int)NPC.Center.Y - 50, Main.rand.Next(SlimeUtils.JellyfishIDs));
-                        //        jellyfish.velocity = new Vector2(Main.rand.Next(-4, 4), Main.rand.Next(-7, -5));
-                        //    }
-                        //}
-
-                        if (Main.getGoodWorld && Main.netMode != NetmodeID.MultiplayerClient) {
-                            NPC.NewNPC(NPC.GetSource_FromAI(), (int)NPC.Center.X - 100, (int)NPC.Center.Y, ModContent.NPCType<Goozmite>(), ai2: NPC.whoAmI);
-                            NPC.NewNPC(NPC.GetSource_FromAI(), (int)NPC.Center.X + 100, (int)NPC.Center.Y, ModContent.NPCType<Goozmite>(), ai2: NPC.whoAmI);
-                        }
-
-                        currentSlime = (short)((currentSlime + 1) % 4);
-                        int slimeAttack = GetSlimeAttack();
-
-                        //Test slimes and attacks
-                        //currentSlime = 3;
-                        //slimeAttack = 1;
-
-                        if (Main.zenithWorld) {
-                            currentSlime = (short)Main.rand.Next(0, 4);
-                        }
-
-                        int[] slimeTypes = new int[]
-                        {
-                            ModContent.NPCType<EbonianBehemuck>(),
-                            ModContent.NPCType<DivineGargooptuar>(),
-                            ModContent.NPCType<CrimulanGlopstrosity>(),
-                            ModContent.NPCType<StellarGeliath>()
-                        };
-
-                        if (Main.netMode != NetmodeID.MultiplayerClient) {
-                            if (NPC.ai[3] < 0 || NPC.ai[3] >= Main.maxNPCs || !ActiveSlime.active) {
-                                NPC.ai[3] = NPC.NewNPC(NPC.GetSource_FromAI(), (int)NPC.Center.X, (int)NPC.Center.Y - 50, slimeTypes[currentSlime], ai0: -50, ai1: slimeAttack, ai2: NPC.whoAmI);
-                                ActiveSlime.velocity.Y -= 16;
-                            }
-                            else {
-                                Vector2 pos = ActiveSlime.Bottom;
-                                ActiveSlime.active = false;
-                                NPC.ai[3] = NPC.NewNPC(NPC.GetSource_FromAI(), (int)pos.X, (int)pos.Y, slimeTypes[currentSlime], ai0: -50, ai1: slimeAttack, ai2: NPC.whoAmI);
-                            }
-
-                            SoundStyle spawn = AssetDirectory.Sounds.Goozma.SpawnSlime;
-                            SoundEngine.PlaySound(spawn, NPC.Center);
-
-                            NPC.netUpdate = true;
-                        }
-                    }
-
-                    NPC.velocity *= 0.9f;
-
-                    if (Time > 70) {
-                        SetAttack((int)Attack + 1, true);
-                    }
+                    DoBehavior_SpawnSlime();
                 }
                 else {
                     NPC.defense = 100;
