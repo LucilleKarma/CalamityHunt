@@ -35,14 +35,11 @@ using Microsoft.CodeAnalysis;
 using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.Audio;
-using Terraria.Chat;
 using Terraria.DataStructures;
 using Terraria.GameContent.Bestiary;
 using Terraria.GameContent.Events;
 using Terraria.GameContent.ItemDropRules;
-using Terraria.Graphics.CameraModifiers;
 using Terraria.ID;
-using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.Utilities;
 using static CalamityHunt.Common.Systems.ConditionalValue;
@@ -494,94 +491,7 @@ public partial class Goozma : ModNPC, ISubjectOfNPC<Goozma>
 
         switch (Phase) {
             case -1:
-
-                const float spawnDelay = 120;
-                SetAttack(AttackList.SpawnSelf);
-                NPC.direction = -1;
-                //NPC.velocity.X = Utils.GetLerpValue(spawnDelay + 3, spawnDelay - 5, Time, true) * (MathF.Cos(Time * MathHelper.Pi / spawnDelay * 2f + 0.33f)) * -20f;
-                //NPC.velocity.Y = Utils.GetLerpValue(spawnDelay + 3, spawnDelay / 2f, Time, true) * (MathF.Cos(Time * MathHelper.Pi / spawnDelay * 4f + 0.1f) - Utils.GetLerpValue(spawnDelay / 2.2f, spawnDelay / 1.8f, Time, true)) * 17f;
-                eyePower = Vector2.One * 0.8f;
-                //NPC.scale = 0.6f + MathF.Sqrt(Utils.GetLerpValue(spawnDelay * 0.2f, spawnDelay, Time, true)) * 0.4f;
-
-                if (Time < spawnDelay) {
-
-                    NPC.velocity.Y = -0.5f + Utils.GetLerpValue(spawnDelay * 0.2f, spawnDelay, Time, true) * 4f;
-                    NPC.direction = NPC.velocity.X > 0 ? 1 : -1;
-                    //rotate = true;
-                    //NPC.rotation = Utils.AngleLerp(NPC.rotation, NPC.velocity.ToRotation() + MathHelper.PiOver2, 0.6f * Utils.GetLerpValue(spawnDelay + 3, spawnDelay - 10, Time, true));
-
-                    for (int i = 0; i < Main.musicFade.Length; i++) {
-                        Main.musicFade[i] = 0f;
-                    }
-
-                    try {
-                        Main.musicFade[Main.curMusic] = 0f;
-                        Main.musicFade[Main.newMusic] = 0f;
-                    }
-                    catch (IndexOutOfRangeException) {
-
-                    }
-
-                }
-
-                if (Time > spawnDelay - 5) {
-                    NPC.velocity *= 0.9f;
-                    eyeOpen = true;
-                }
-
-                if (Time == spawnDelay) {
-
-                    NPC.netUpdate = true;
-                    eyeOpen = true;
-
-                    Music = Music1;
-
-                    if (Main.netMode == NetmodeID.SinglePlayer) {
-                        Main.NewText(Language.GetTextValue("Announcement.HasAwoken", NPC.TypeName), HUtils.BossTextColor);
-                    }
-                    else if (Main.netMode == NetmodeID.Server) {
-                        ChatHelper.BroadcastChatMessage(NetworkText.FromKey("Announcement.HasAwoken", NPC.GetTypeNetName()), HUtils.BossTextColor);
-                    }
-                }
-
-                if (Time >= spawnDelay && !initializedLocal) { // i must fix the music AAAAAAAAAAAAAAAAAAAAAAAAAAamf
-                    Music = Music1;
-                    if (Main.netMode != NetmodeID.Server) {
-                        Main.newMusic = Music1;
-                        try {
-                            Main.musicFade[Main.curMusic] = 0f;
-                            Main.musicFade[Main.newMusic] = 1f;
-                        }
-                        catch (IndexOutOfRangeException) { }
-                    }
-
-                    SoundEngine.PlaySound(AssetDirectory.Sounds.Goozma.Awaken.WithVolumeScale(1.8f), NPC.Center);
-
-                    initializedLocal = true;
-                }
-                if (Time > spawnDelay && Time % 4 == 0) {
-                    Main.instance.CameraModifiers.Add(new PunchCameraModifier(NPC.Center, Main.rand.NextVector2CircularEdge(1, 1), 20f, 6f, 10, 8000, "Goozma"));
-                }
-
-                if (Time > spawnDelay + 70) {
-                    SetPhase(0);
-                    NPC.dontTakeDamage = false;
-                }
-
-                if (Main.netMode != NetmodeID.Server) Dust.NewDustPerfect(NPC.Center + Main.rand.NextVector2Circular(10, 10), DustID.TintableDust, Main.rand.NextVector2CircularEdge(10, 10), 200, Color.Black, Main.rand.NextFloat(2f, 4f)).noGravity = true;
-
-                if (Main.netMode != NetmodeID.Server && Main.rand.NextBool((int)(Time * 0.1f + 2))) {
-                    Vector2 particleVelocity = Vector2.UnitY.RotatedByRandom(1f);
-                    particleVelocity.Y -= Main.rand.NextFloat(3f);
-
-                    CalamityHunt.particles.Add(Particle.Create<ChromaticGooBurst>(particle => {
-                        particle.position = Main.rand.NextVector2FromRectangle(NPC.Hitbox);
-                        particle.velocity = particleVelocity + particle.position.DirectionFrom(NPC.Center);
-                        particle.scale = Main.rand.NextFloat(0.5f, 1.5f);
-                        particle.color = new GradientColor(SlimeUtils.GoozColors, 0.2f, 0.2f).Value;
-                    }));
-                }
-
+                DoBehavior_SpawnAnimation();
                 break;
 
             case 0:
