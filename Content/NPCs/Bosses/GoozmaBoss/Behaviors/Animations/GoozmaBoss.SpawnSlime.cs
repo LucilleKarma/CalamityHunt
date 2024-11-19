@@ -8,6 +8,7 @@ using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
+using Terraria.Utilities;
 
 namespace CalamityHunt.Content.NPCs.Bosses.GoozmaBoss
 {
@@ -38,6 +39,42 @@ namespace CalamityHunt.Content.NPCs.Bosses.GoozmaBoss
         /// How long Goozma waits during his slime spawning state, after spawning a slime, to transition to attacking again.
         /// </summary>
         public static int SpawnSlime_StateTransitionDelay => 20;
+
+        /// <summary>
+        /// Handles the selection of a new slime attack for Goozma. Used during his slime spawning state for future state evaluations.
+        /// </summary>
+        public int GetSlimeAttack()
+        {
+            // TODO -- Document this better when I'm more familiar with the AI. -Lucille
+
+            int gotten = -1;
+
+            if (Main.netMode != NetmodeID.MultiplayerClient) {
+                // Sanity check the upcoming attack list.
+                if (nextAttack[currentSlime] == null || nextAttack[currentSlime].Length != 3 || (
+                    nextAttack[currentSlime][0] == slimeAttackskipIt &&
+                    nextAttack[currentSlime][1] == slimeAttackskipIt &&
+                    nextAttack[currentSlime][2] == slimeAttackskipIt)) {
+                    nextAttack[currentSlime] = new byte[] { 0, 1, 2 };
+                }
+
+                WeightedRandom<int> weightedRandom = new(Main.rand);
+                foreach (int j in nextAttack[currentSlime]) {
+                    if (j == slimeAttackskipIt) {
+                        continue;
+                    }
+
+                    weightedRandom.Add(j, j == 2 ? SpecialAttackWeight : 1f);
+                }
+
+                gotten = weightedRandom.Get();
+                nextAttack[currentSlime][gotten] = slimeAttackskipIt;
+
+                NPC.netUpdate = true;
+            }
+
+            return gotten;
+        }
 
         /// <summary>
         /// Performs Goozma's slime spawning animation.

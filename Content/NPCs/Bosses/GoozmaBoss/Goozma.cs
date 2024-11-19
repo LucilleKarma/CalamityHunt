@@ -41,7 +41,6 @@ using Terraria.GameContent.Events;
 using Terraria.GameContent.ItemDropRules;
 using Terraria.ID;
 using Terraria.ModLoader;
-using Terraria.Utilities;
 using static CalamityHunt.Common.Systems.ConditionalValue;
 
 namespace CalamityHunt.Content.NPCs.Bosses.GoozmaBoss;
@@ -339,36 +338,6 @@ public partial class Goozma : ModNPC, ISubjectOfNPC<Goozma>
     private static readonly float SpecialAttackWeight = 0.0f; //unable to choose, therefore saved for last
 
     const byte slimeAttackskipIt = 255;
-
-    public int GetSlimeAttack()
-    {
-        int gotten = -1;
-
-        if (Main.netMode != NetmodeID.MultiplayerClient) {
-            if (nextAttack[currentSlime] == null || nextAttack[currentSlime].Length != 3 || (
-                nextAttack[currentSlime][0] == slimeAttackskipIt &&
-                nextAttack[currentSlime][1] == slimeAttackskipIt &&
-                nextAttack[currentSlime][2] == slimeAttackskipIt
-                )) {
-                nextAttack[currentSlime] = new byte[] { 0, 1, 2 };
-            }
-
-
-
-            WeightedRandom<int> weightedRandom = new WeightedRandom<int>(Main.rand);
-            foreach (int j in nextAttack[currentSlime]) {
-                if (j == slimeAttackskipIt) continue;
-                weightedRandom.Add(j, j == 2 ? SpecialAttackWeight : 1f);
-            }
-
-            gotten = weightedRandom.Get();
-            nextAttack[currentSlime][gotten] = slimeAttackskipIt;
-
-            NPC.netUpdate = true;
-        }
-
-        return gotten;
-    }
 
     public override void OnSpawn(IEntitySource source)
     {
