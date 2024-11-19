@@ -95,17 +95,7 @@ public partial class Goozma : ModNPC
         spriteBatch.Draw(glow, NPC.Center - screenPos, glow.Frame(), glowColor * 0.2f, extraTilt + NPC.rotation, glow.Size() * 0.5f, 5f * NPC.scale, 0, 0);
 
         Vector2 realEyeOffset = drawOffset * 0.5f + new Vector2(15 * NPC.direction, -22).RotatedBy(extraTilt * 0.9f + NPC.rotation) * headScale * NPC.scale;
-
-        if (Phase == 1 && Time >= 50) {
-            eyeScale *= (float)Math.Cbrt(Utils.GetLerpValue(290, 330, Time, true));
-            float eyeFlash = Utils.GetLerpValue(300, 360, Time, true);
-            spriteBatch.Draw(godEye, NPC.Center - screenPos + realEyeOffset, godEye.Frame(), glowColor * (1f - eyeFlash) * 0.5f, eyeRot, godEye.Size() * 0.5f, eyeScale * (1f + eyePower.Length() * 0.06f + eyeFlash * 3f), 0, 0);
-            spriteBatch.Draw(godEye, NPC.Center - screenPos + realEyeOffset, godEye.Frame(), glowColor * (1f - eyeFlash) * 0.2f, eyeRot, godEye.Size() * 0.5f, eyeScale * (1f + eyePower.Length() * 0.06f + eyeFlash * 9f), 0, 0);
-
-            spriteBatch.Draw(sclera, NPC.Center - screenPos + realEyeOffset, sclera.Frame(), Color.White, 0, sclera.Size() * 0.5f, 1.05f, 0, 0);
-            spriteBatch.Draw(glow, NPC.Center - screenPos + realEyeOffset, glow.Frame(), glowColor * 0.5f, extraTilt + NPC.rotation, glow.Size() * 0.5f, 1.2f, 0, 0);
-        }
-
+        DoBehavior_PhaseTransitionSplit_CustomRendering(eyeRot, glowColor, NPC.Center - screenPos + realEyeOffset, ref eyeScale);
         RequestTarget(spriteBatch);
 
         if (goozmaContent.IsTargetReady(NPC.whoAmI)) {
