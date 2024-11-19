@@ -184,8 +184,9 @@ namespace CalamityHunt.Content.NPCs.Bosses.GoozmaBoss
             }
 
             // The slime has been summoned and enough time has passed. Roll to the next attack.
+            // TODO -- "(int)CurrentState + 1"? This seems a bit hacky. -Lucille
             if (Time > SpawnSlime_SummonDelay + SpawnSlime_StateTransitionDelay) {
-                SetAttack((int)Attack + 1, true);
+                SetAttack((int)CurrentState + 1, true);
             }
         }
     }

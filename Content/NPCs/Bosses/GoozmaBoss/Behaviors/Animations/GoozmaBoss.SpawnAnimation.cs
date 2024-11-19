@@ -32,7 +32,7 @@ namespace CalamityHunt.Content.NPCs.Bosses.GoozmaBoss
         {
             int awakenDelay = SpawnAnimation_AwakenDelay;
 
-            SetAttack(AttackList.SpawnSelf);
+            SetAttack(GoozmaBehavior.SpawnAnimation);
             NPC.direction = -1;
             eyePower = Vector2.One * 0.8f;
 

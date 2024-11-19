@@ -205,8 +205,16 @@ public partial class Goozma : ModNPC, ISubjectOfNPC<Goozma>
         potionType = ModContent.ItemType<SupremeRestorationPotion>();
     }
 
+    /// <summary>
+    /// Goozma's current AI state.
+    /// </summary>
+    public GoozmaBehavior CurrentState
+    {
+        get => (GoozmaBehavior)NPC.ai[1];
+        set => NPC.ai[1] = (int)value;
+    }
+
     public ref float Time => ref NPC.ai[0];
-    public ref float Attack => ref NPC.ai[1];
     public ref float Phase => ref NPC.ai[2];
     public ref float ActiveSlimeIndex => ref NPC.ai[3]; // TODO -- Update all references to ai[3] to use this instead.
     public ref NPC ActiveSlime => ref Main.npc[(int)ActiveSlimeIndex];
@@ -403,7 +411,7 @@ public partial class Goozma : ModNPC, ISubjectOfNPC<Goozma>
         bool noSlime = NPC.ai[3] < 0 || NPC.ai[3] >= Main.maxNPCs || ActiveSlime.ai[1] > 3 || !ActiveSlime.active;
 
         if (Phase == 0 && noSlime) {
-            SetAttack(AttackList.SpawnSlime);
+            SetAttack(GoozmaBehavior.SpawnSlime);
         }
 
         if (NPC.velocity.HasNaNs()) {
@@ -465,7 +473,7 @@ public partial class Goozma : ModNPC, ISubjectOfNPC<Goozma>
                 break;
 
             case 0:
-                if (Attack == (int)AttackList.SpawnSlime) {
+                if (CurrentState == GoozmaBehavior.SpawnSlime) {
                     DoBehavior_SpawnSlime();
                 }
                 else {
@@ -623,16 +631,6 @@ public partial class Goozma : ModNPC, ISubjectOfNPC<Goozma>
                             break;
                     }
                 }
-
-                //if (Main.expertMode || Main.masterMode) {
-                //    if (NPC.life <= NPC.lifeMax * 0.33f) {
-                //        SetPhase((int)Phase + 1);
-                //        NPC.dontTakeDamage = true;
-                //        NPC.life = (int)(NPC.lifeMax * 0.33f);
-                //    }
-                //}
-
-                //eyePower = Vector2.One * 1.2f;
 
                 break;
 
@@ -801,8 +799,8 @@ public partial class Goozma : ModNPC, ISubjectOfNPC<Goozma>
                 break;
 
             case 2:
-                switch (Attack) {
-                    case (int)AttackList.BurstLightning:
+                switch (CurrentState) {
+                    case GoozmaBehavior.BurstLightning:
 
                         NPC.dontTakeDamage = false;
 
@@ -821,12 +819,12 @@ public partial class Goozma : ModNPC, ISubjectOfNPC<Goozma>
 
                         if (Time > 640) {
                             SetTime(-60);
-                            SetAttack(AttackList.DrillDash);
+                            SetAttack(GoozmaBehavior.DrillDash);
                         }
 
                         break;
 
-                    case (int)AttackList.DrillDash:
+                    case GoozmaBehavior.DrillDash:
 
                         NPC.dontTakeDamage = false;
 
@@ -931,14 +929,14 @@ public partial class Goozma : ModNPC, ISubjectOfNPC<Goozma>
 
                         if (Time > dashTime * dashCount + 20 && Main.netMode != NetmodeID.MultiplayerClient) {
                             SetTime(-30);
-                            SetAttack(RevengeanceMode ? (int)AttackList.Absorption : (int)AttackList.FusionRay);
+                            SetAttack(RevengeanceMode ? (int)GoozmaBehavior.GoozmiteAbsorption : (int)GoozmaBehavior.FusionRay);
                         }
 
                         NPC.damage = GetDamage(6, 0.9f + Time % dashTime / dashTime * 0.2f);
 
                         break;
 
-                    case (int)AttackList.Absorption:
+                    case GoozmaBehavior.GoozmiteAbsorption:
 
                         NPC.dontTakeDamage = true;
                         NPC.damage = 0;
@@ -1008,16 +1006,16 @@ public partial class Goozma : ModNPC, ISubjectOfNPC<Goozma>
                             NPC.dontTakeDamage = false;
 
                             if (NPC.life > (NPC.lifeMax * 0.15f)) {
-                                SetAttack(AttackList.FusionRay, true);
+                                SetAttack(GoozmaBehavior.FusionRay, true);
                             }
                             else {
-                                SetAttack(AttackList.BurstLightning, true);
+                                SetAttack(GoozmaBehavior.BurstLightning, true);
                             }
                         }
 
                         break;
 
-                    case (int)AttackList.FusionRay:
+                    case GoozmaBehavior.FusionRay:
 
                         NPC.dontTakeDamage = false;
 
@@ -1028,14 +1026,14 @@ public partial class Goozma : ModNPC, ISubjectOfNPC<Goozma>
                         NPC.damage = 0;
 
                         if (Time > 1400) {
-                            SetAttack(AttackList.BurstLightning, true);
+                            SetAttack(GoozmaBehavior.BurstLightning, true);
                         }
 
                         break;
 
                     default:
 
-                        SetAttack(AttackList.BurstLightning, true);
+                        SetAttack(GoozmaBehavior.BurstLightning, true);
 
                         break;
                 }
@@ -1044,7 +1042,7 @@ public partial class Goozma : ModNPC, ISubjectOfNPC<Goozma>
                     NPC.defense = 200;
                     NPC.takenDamageMultiplier = 0.9f;
 
-                    if (Attack != (int)AttackList.FusionRay) {
+                    if (CurrentState != GoozmaBehavior.FusionRay) {
                         SetPhase(-2);
                     }
                 }
@@ -1236,7 +1234,7 @@ public partial class Goozma : ModNPC, ISubjectOfNPC<Goozma>
 
             case -21:
 
-                Attack = (int)AttackList.Shimmering;
+                CurrentState = GoozmaBehavior.Shimmering;
 
                 NPC.velocity = Vector2.Lerp(NPC.velocity, Vector2.UnitY * -8, 0.2f) * Utils.GetLerpValue(60, 20, Time, true);
 
@@ -1300,7 +1298,7 @@ public partial class Goozma : ModNPC, ISubjectOfNPC<Goozma>
                 // eat astrageldon
                 Mod catalyst = ModLoader.GetMod(HUtils.CatalystMod);
 
-                Attack = (int)AttackList.DevouringTheInnocent;
+                CurrentState = GoozmaBehavior.ConsumeAstralgeldonAndLeave;
 
                 NPC.dontTakeDamage = true;
 
@@ -2215,18 +2213,18 @@ public partial class Goozma : ModNPC, ISubjectOfNPC<Goozma>
     }
 
     //helper methods to do syncing
-    public void SetAttack(AttackList attack, bool zeroTime = false) => SetAttack((int)attack, zeroTime);
+    public void SetAttack(GoozmaBehavior attack, bool zeroTime = false) => SetAttack((int)attack, zeroTime);
 
     public void SetAttack(int attack, bool zeroTime = false)
     {
-        if ((AttackList)attack == AttackList.DrillDash) {
+        if ((GoozmaBehavior)attack == GoozmaBehavior.DrillDash) {
             drillDashCounter13 = 0; // reset the quantum counter
         }
-        if ((AttackList)attack == AttackList.FusionRay) {
+        if ((GoozmaBehavior)attack == GoozmaBehavior.FusionRay) {
             fusionRayFlag = false; // reset the quantum counter
         }
         if (Main.netMode != NetmodeID.MultiplayerClient) {
-            Attack = attack;
+            CurrentState = (GoozmaBehavior)attack;
             if (zeroTime) {
                 Time = 0;
             }
