@@ -486,14 +486,7 @@ public partial class Goozma : ModNPC, ISubjectOfNPC<Goozma>
                             NPC.damage = 0;
                             switch (ActiveSlime.ai[1]) {
                                 case 0:
-
-                                    AresLockTo(Target.Center - new Vector2(0, 400) + Target.Velocity * new Vector2(5f, 2f));
-
-                                    if (Time > 50) {
-                                        SortedProjectileAttack(Target.Center - Target.Velocity * 10, SortedProjectileAttackTypes.EbonianBubbles);
-                                        NPC.velocity.X *= 0.8f;
-                                    }
-
+                                    DoBehavior_EbonianBubbles();
                                     break;
                                 case 1:
 
@@ -1569,10 +1562,6 @@ public partial class Goozma : ModNPC, ISubjectOfNPC<Goozma>
             goozmaShootPowerCurrent = 0f;
         }
 
-        if (Phase == 1) {
-            goozmaShootPowerCurrent = Utils.GetLerpValue(340, 510, Time, true) * 1.2f;
-        }
-
         if (goozmaShoot == null) {
             goozmaShoot = new LoopingSound(AssetDirectory.Sounds.Goozma.ShootLoop, () => new HUtils.NPCAudioTracker(NPC).IsActiveAndInGame() && goozmaShootPowerCurrent > 0.05f);
         }
@@ -1622,30 +1611,6 @@ public partial class Goozma : ModNPC, ISubjectOfNPC<Goozma>
                 break;
 
             case SortedProjectileAttackTypes.EbonianBubbles:
-
-                if (NPC.Distance(Target.Center) > 300) {
-                    if (Time % 15 == 0) {
-                        SoundEngine.PlaySound(fizzSound, NPC.Center);
-                        goozmaShootPowerTarget = 1f;
-                    }
-
-                    float angle = MathHelper.SmoothStep(1.5f, 0.9f, Time / 350f);
-                    if (Time % 6 == 0) {
-
-                        if (Main.netMode != NetmodeID.MultiplayerClient) Projectile.NewProjectileDirect(NPC.GetSource_FromAI(), NPC.Center, Vector2.UnitY.RotatedBy(angle).RotatedByRandom(0.3f) * Main.rand.Next(4, 7), ModContent.ProjectileType<SlimeShot>(), GetDamage(1), 0);
-                        if (Main.netMode != NetmodeID.MultiplayerClient) Projectile.NewProjectileDirect(NPC.GetSource_FromAI(), NPC.Center, Vector2.UnitY.RotatedBy(-angle).RotatedByRandom(0.3f) * Main.rand.Next(4, 7), ModContent.ProjectileType<SlimeShot>(), GetDamage(1), 0);
-                    }
-                    if ((Time + 6) % 6 == 0) {
-
-                        if (Main.netMode != NetmodeID.MultiplayerClient) Projectile.NewProjectileDirect(NPC.GetSource_FromAI(), NPC.Center, Vector2.UnitY.RotatedBy(angle + 0.3f).RotatedByRandom(0.3f) * Main.rand.Next(2, 4), ModContent.ProjectileType<SlimeShot>(), GetDamage(1), 0);
-                        if (Main.netMode != NetmodeID.MultiplayerClient) Projectile.NewProjectileDirect(NPC.GetSource_FromAI(), NPC.Center, Vector2.UnitY.RotatedBy(-angle - 0.3f).RotatedByRandom(0.3f) * Main.rand.Next(2, 4), ModContent.ProjectileType<SlimeShot>(), GetDamage(1), 0);
-                    }
-                    if (Target.Center.Y < NPC.Top.Y - 300) {
-
-                        if (Main.netMode != NetmodeID.MultiplayerClient) Projectile.NewProjectileDirect(NPC.GetSource_FromAI(), NPC.Center, NPC.DirectionTo(Target.Center).SafeNormalize(Vector2.Zero) * Main.rand.Next(2, 8), ModContent.ProjectileType<SlimeShot>(), GetDamage(1), 0);
-                    }
-                }
-
                 break;
 
             case SortedProjectileAttackTypes.EbonianTrifecta:

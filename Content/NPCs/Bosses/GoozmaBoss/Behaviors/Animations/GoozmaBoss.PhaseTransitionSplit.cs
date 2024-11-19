@@ -195,6 +195,10 @@ namespace CalamityHunt.Content.NPCs.Bosses.GoozmaBoss
                 Music = Music2;
                 SetPhase((int)Phase + 1);
             }
+
+            // Update Goozma's shoot sound loop.
+            goozmaShootPowerTarget = Utils.GetLerpValue(PhaseTransitionSplit_ReformDelay + 40f, PhaseTransitionSplit_OverallDuration - 60f, Time, true) * 1.2f;
+            goozmaShootPowerCurrent = goozmaShootPowerTarget;
         }
 
         /// <summary>
@@ -211,6 +215,9 @@ namespace CalamityHunt.Content.NPCs.Bosses.GoozmaBoss
             NPC.netUpdate = true;
         }
 
+        /// <summary>
+        /// Moves the camera onto Goozma during his phase transition split.
+        /// </summary>
         public void DoBehavior_PhaseTransitionSplit_UpdateCamera()
         {
             if (Time < PhaseTransitionSplit_OverallDuration) {
@@ -228,6 +235,16 @@ namespace CalamityHunt.Content.NPCs.Bosses.GoozmaBoss
 
                 initializedLocalP2Camera = true;
             }
+        }
+
+        /// <summary>
+        /// Modifies Goozma's simmer sound during his phase transition split.
+        /// </summary>
+        public void DoBehavior_PhaseTransitionSplit_HandleGoozmaSimmerSound(ref float pitch, ref float volume)
+        {
+            float soundRiseInterpolant = Utils.GetLerpValue(PhaseTransitionSplit_ReformDelay + 30f, PhaseTransitionSplit_OverallDuration - 20f, Time, true);
+            pitch = soundRiseInterpolant;
+            volume = MathHelper.Lerp(0.5f, 1.1f, soundRiseInterpolant);
         }
 
         /// <summary>

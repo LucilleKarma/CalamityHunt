@@ -102,7 +102,7 @@ namespace CalamityHunt.Content.NPCs.Bosses.GoozmaBoss
 
         public override void OnSpawn(IEntitySource source)
         {
-            
+
         }
 
         private bool initializedLocal = false;
@@ -167,7 +167,6 @@ namespace CalamityHunt.Content.NPCs.Bosses.GoozmaBoss
             else {
                 switch (Attack) {
                     case (int)AttackList.ToxicBubbles:
-                        ToxicBubbles();
                         break;
 
                     case (int)AttackList.Trifecta:
@@ -220,7 +219,7 @@ namespace CalamityHunt.Content.NPCs.Bosses.GoozmaBoss
             NPC.localAI[0]++;
         }
 
-        private void Reset()
+        public void Reset()
         {
             Time = 0;
             Attack = (int)AttackList.Interrupt;
@@ -230,91 +229,7 @@ namespace CalamityHunt.Content.NPCs.Bosses.GoozmaBoss
             }
         }
 
-        private Vector2 saveTarget;
-
-        private void ToxicBubbles()
-        {
-            int jumpCount = (int)DifficultyBasedValue(3, 4, 5, 6, master: 5, masterrev: 6, masterdeath: 8);
-            int jumpTime = (int)DifficultyBasedValue(120, 100, 70, 60, master: 70, masterrev: 60, masterdeath: 55);
-
-            NPC.dontTakeDamage = false;
-
-            if (Time < 40) {
-                squishFactor = new Vector2(1f + (float)Math.Pow(Utils.GetLerpValue(2, 40, Time, true), 2) * 0.4f, 1f - (float)Math.Pow(Utils.GetLerpValue(2, 40, Time, true), 2) * 0.6f);
-
-                if (Time == 38) {
-                    NPC.velocity += new Vector2(NPC.DirectionTo(saveTarget).SafeNormalize(Vector2.Zero).X * 10, -10);
-                }
-            }
-            else if (Time < 40 + jumpCount * jumpTime) {
-                float localTime = (Time - 40) % jumpTime;
-
-                if (localTime < (int)(jumpTime * 0.2f)) {
-                    saveTarget = Target.Center + new Vector2(Target.Velocity.X * 45, 380);
-                }
-
-                if (localTime == 0) {
-                    NPC.velocity.Y -= 10;
-                    SoundStyle hop = AssetDirectory.Sounds.Goozma.SlimeJump;
-                    SoundEngine.PlaySound(hop, NPC.Center);
-                    SoundEngine.PlaySound(SoundID.QueenSlime, NPC.Center);
-                }
-                else if (localTime < (int)(jumpTime * 0.8f)) {
-                    Vector2 midPoint = new Vector2((NPC.Center.X + saveTarget.X) / 2f, NPC.Center.Y);
-                    Vector2 jumpTarget = Vector2.Lerp(Vector2.Lerp(NPC.Center, midPoint, Utils.GetLerpValue(0, jumpTime * 0.3f, localTime, true)), Vector2.Lerp(midPoint, saveTarget, Utils.GetLerpValue(jumpTime * 0.3f, jumpTime * 0.75f, localTime, true)), Utils.GetLerpValue(0, jumpTime * 0.7f, localTime, true));
-                    NPC.velocity = Vector2.Lerp(NPC.velocity, NPC.DirectionTo(jumpTarget).SafeNormalize(Vector2.Zero) * NPC.Distance(jumpTarget) * 0.7f * Utils.GetLerpValue(0, jumpTime * 0.7f, localTime, true), (float)Math.Pow(Utils.GetLerpValue(0, jumpTime * 0.8f, localTime, true), 2f));
-                    NPC.rotation = -NPC.velocity.Y * 0.005f * Math.Sign(NPC.velocity.X);
-
-                    float resquish = Utils.GetLerpValue(jumpTime * 0.4f, 0, localTime, true) + Utils.GetLerpValue(jumpTime * 0.3f, jumpTime * 0.6f, localTime, true);
-                    squishFactor = new Vector2(1f - (float)Math.Pow(resquish, 2) * 0.5f, 1f + (float)Math.Pow(resquish, 2) * 0.5f);
-                    NPC.frameCounter++;
-
-                }
-
-                if (localTime >= (int)(jumpTime * 0.8f) && localTime < (int)(jumpTime * 0.95f)) {
-                    NPC.velocity *= 0.2f;
-                    NPC.rotation = 0;
-
-                    for (int i = 0; i < Main.rand.Next(1, 2); i++) {
-                        Vector2 velocity = Main.rand.NextVector2Circular(20, 15) + Vector2.UnitY * 15 + NPC.DirectionTo(Target.Center).SafeNormalize(Vector2.Zero) * 10f;
-                        // Prevent bubbles from shooting directly up. Any bubbles that would have spawned shooting upwards with next to no horizontal velocity are pushed away
-                        if (Math.Abs(velocity.X) < 6 && velocity.Y < 0) {
-                            velocity.X = 6 * Math.Sign(velocity.X);
-                        }
-                        Projectile.NewProjectile(NPC.GetSource_FromAI(), NPC.Bottom, velocity, ModContent.ProjectileType<ToxicSludge>(), GetDamage(1), 0);
-                    }
-
-                    if (localTime % 2 == 0) {
-                        Main.instance.CameraModifiers.Add(new PunchCameraModifier(saveTarget, Main.rand.NextVector2CircularEdge(3, 3), 5f, 10, 12));
-                    }
-
-                    squishFactor = new Vector2(1f + (float)Math.Sqrt(Utils.GetLerpValue(jumpTime, jumpTime * 0.8f, localTime, true)) * 0.6f, 1f - (float)Math.Sqrt(Utils.GetLerpValue(jumpTime, jumpTime * 0.8f, localTime, true)) * 0.5f);
-                }
-                if (localTime == (int)(jumpTime * 0.74f)) {
-                    foreach (Player player in Main.player.Where(n => n.active && !n.dead && n.Distance(NPC.Center) < 600)) {
-                        player.velocity += player.DirectionFrom(NPC.Bottom + Vector2.UnitY * 10) * 3;
-                    }
-
-                    SoundStyle slam = AssetDirectory.Sounds.GoozmaMinions.SlimeSlam;
-                    SoundEngine.PlaySound(slam, NPC.Center);
-
-                    for (int i = 0; i < Main.rand.Next(14, 20); i++) {
-                        Vector2 velocity = Main.rand.NextVector2Circular(8, 1) - Vector2.UnitY * Main.rand.NextFloat(7f, 12f);
-                        Vector2 position = NPC.Center + Main.rand.NextVector2Circular(1, 50) + new Vector2(velocity.X * 15f, 32f);
-                        CalamityHunt.particles.Add(Particle.Create<EbonGelChunk>(particle => {
-                            particle.position = position;
-                            particle.velocity = velocity;
-                            particle.scale = Main.rand.NextFloat(0.1f, 2.1f);
-                            particle.color = Color.White;
-                        }));
-                    }
-                }
-            }
-
-            if (Time > 50 + jumpCount * jumpTime) {
-                Reset();
-            }
-        }
+        public Vector2 saveTarget;
 
         private void Trifecta()
         {
