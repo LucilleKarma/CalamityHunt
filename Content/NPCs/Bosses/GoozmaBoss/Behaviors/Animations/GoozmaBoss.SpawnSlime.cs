@@ -24,9 +24,20 @@ namespace CalamityHunt.Content.NPCs.Bosses.GoozmaBoss
             ModContent.NPCType<StellarGeliath>()
         };
 
+        /// <summary>
+        /// How long Goozma spends redirecting to be near the player during his slime spawning state.
+        /// </summary>
         public static int SpawnSlime_RedirectTime => 45;
 
+        /// <summary>
+        /// How long Goozma waits during his slime spawning state to spawn a new slime.
+        /// </summary>
         public static int SpawnSlime_SummonDelay => 50;
+
+        /// <summary>
+        /// How long Goozma waits during his slime spawning state, after spawning a slime, to transition to attacking again.
+        /// </summary>
+        public static int SpawnSlime_StateTransitionDelay => 20;
 
         /// <summary>
         /// Performs Goozma's slime spawning animation.
@@ -136,7 +147,7 @@ namespace CalamityHunt.Content.NPCs.Bosses.GoozmaBoss
             }
 
             // The slime has been summoned and enough time has passed. Roll to the next attack.
-            if (Time > SpawnSlime_SummonDelay + 20f) {
+            if (Time > SpawnSlime_SummonDelay + SpawnSlime_StateTransitionDelay) {
                 SetAttack((int)Attack + 1, true);
             }
         }
