@@ -38,7 +38,7 @@ namespace CalamityHunt.Content.NPCs.Bosses.GoozmaBoss
             NPCID.Sets.SpecificDebuffImmunity[Type][BuffID.Poisoned] = true;
             NPCID.Sets.SpecificDebuffImmunity[Type][BuffID.Confused] = true;
             if (Common.ModCompatibility.Calamity.IsLoaded) {
-                NPCID.Sets.SpecificDebuffImmunity[Type][Common.ModCompatibility.Calamity.Mod.Find<ModBuff>("MiracleBlight").Type] = true;
+                NPCID.Sets.SpecificDebuffImmunity[Type][Common.ModCompatibility.Calamity.Mod.Find<ModBuff>("VulnerabilityHex").Type] = true;
             }
 
             //NPCID.Sets.NPCBestiaryDrawModifiers drawModifiers = new NPCID.Sets.NPCBestiaryDrawModifiers(0) { };
@@ -199,6 +199,8 @@ namespace CalamityHunt.Content.NPCs.Bosses.GoozmaBoss
                         if (Time < 5) {
                             saveTarget = Target.Center;
                         }
+
+                        NPC.damage = 0;
 
                         Vector2 midPoint = new Vector2((NPC.Center.X + saveTarget.X) / 2f, NPC.Center.Y);
                         Vector2 jumpTarget = Vector2.Lerp(Vector2.Lerp(NPC.Center, midPoint, Utils.GetLerpValue(0, 15, Time, true)), Vector2.Lerp(midPoint, saveTarget, Utils.GetLerpValue(5, 30, Time, true)), Utils.GetLerpValue(0, 30, Time, true));
@@ -503,6 +505,7 @@ namespace CalamityHunt.Content.NPCs.Bosses.GoozmaBoss
                 else {
                     NPC.velocity = Vector2.Lerp(NPC.velocity, NPC.DirectionTo(Target.Center).SafeNormalize(Vector2.Zero) * (NPC.Distance(Target.Center) - 140) * 0.2f, 0.2f) * Utils.GetLerpValue(40, 20, Time, true);
                 }
+                NPC.damage = 0;
             }
             else if (Time < 40 + waitTime) {
                 if (Time == 45) {
@@ -549,7 +552,7 @@ namespace CalamityHunt.Content.NPCs.Bosses.GoozmaBoss
                     int count = (int)DifficultyBasedValue(2, 2, 3, 3, 4, master: 3, masterrev: 4, masterdeath: 6);
                     for (int i = 0; i < count; i++) {
                         Vector2 starPosition = new Vector2(Main.rand.Next(-50, 50), Main.rand.Next(-10, 10));
-                        Vector2 starVelocity = new Vector2(starPosition.X * 0.2f, -Main.rand.Next(5, 25)) + NPC.DirectionTo(Target.Center).SafeNormalize(Vector2.Zero) * Main.rand.Next(5);
+                        Vector2 starVelocity = new Vector2(starPosition.X * 0.2f, -Main.rand.Next(5, 25)) + NPC.DirectionTo(Target.Center).SafeNormalize(Vector2.Zero) * Main.rand.Next(3);
                         Projectile starbit = Projectile.NewProjectileDirect(NPC.GetSource_FromThis(), NPC.Center + starPosition, starVelocity, ModContent.ProjectileType<StellarGelatine>(), GetDamage(4), 0f);
                         starbit.ai[0] = (int)(Time * 0.2f) - (40 + waitTime + 12) + Utils.GetLerpValue(0, count, i, true) * 40 - 20;
                         starbit.ai[2] = NPC.whoAmI;
@@ -564,7 +567,7 @@ namespace CalamityHunt.Content.NPCs.Bosses.GoozmaBoss
             else {
                 NPC.damage = 0;
 
-                NPC.velocity = Vector2.Lerp(NPC.velocity, NPC.DirectionTo(Target.Center).SafeNormalize(Vector2.Zero) * (NPC.Distance(Target.Center) - 300) * 0.07f, 0.02f) * Utils.GetLerpValue(40 + waitTime + 130, 40 + waitTime + 150, Time, true);
+                NPC.velocity = Vector2.Lerp(NPC.velocity, NPC.DirectionTo(Target.Center).SafeNormalize(Vector2.Zero) * (NPC.Distance(Target.Center) - 300) * 0.05f, 0.02f) * Utils.GetLerpValue(40 + waitTime + 130, 40 + waitTime + 150, Time, true);
                 NPC.rotation = 0;
                 squishFactor = Vector2.Lerp(squishFactor, Vector2.One, Utils.GetLerpValue(40 + waitTime + 130, 40 + waitTime + 150, Time, true) * 0.2f);
                 if (NPC.scale < 1f && Time < 40 + waitTime + 250) {
@@ -587,6 +590,10 @@ namespace CalamityHunt.Content.NPCs.Bosses.GoozmaBoss
                     Vector2 rocketVelocity = (NPC.rotation + MathHelper.PiOver2).ToRotationVector2().RotatedByRandom(1.5) * Main.rand.Next(25, 35);
                     Projectile.NewProjectileDirect(NPC.GetSource_FromThis(), rocketPosition, rocketVelocity, ModContent.ProjectileType<InterstellarFlame>(), GetDamage(4), 0f);
                 }
+            }
+
+            if (Time < 40 + waitTime + 10) {
+                NPC.damage = 0;
             }
 
             if (Time > 40 + waitTime + 280) {
@@ -618,14 +625,22 @@ namespace CalamityHunt.Content.NPCs.Bosses.GoozmaBoss
                         player.Hurt(PlayerDeathReason.ByCustomReason($"{player.name} was shredded by gravity."), 9999, -1, false, true, -1, false, 0, 0, 0);
                     }
 
-                    if (player.Distance(NPC.Center) > holeSize + 400) {
-                        player.velocity += player.DirectionTo(NPC.Center) * Utils.GetLerpValue(holeSize + 400, holeSize + 700, player.Distance(NPC.Center));
+                    if (player.Distance(NPC.Center) > holeSize + 600) {
+                        player.velocity += player.DirectionTo(NPC.Center) * Utils.GetLerpValue(holeSize + 600, holeSize + 900, player.Distance(NPC.Center));
                     }
                 }
 
+                // spawn meteors in a full 360 degree range
+                if (Time % 22 == 0 && Time < 430) {
+                    int chosenSize = Main.rand.Next(0, 3);
+                    Projectile rock = Projectile.NewProjectileDirect(NPC.GetSource_FromThis(), Target.Center + Main.rand.NextVector2CircularEdge(2000, 2400), Vector2.Zero, ModContent.ProjectileType<ThrowableChunk>(), GetDamage(6 + chosenSize), 0);
+                    rock.ai[1] = chosenSize;
+                }
+
+                // spawn more meteors but angled towards where the player is relative to the slime
                 if (Time % 13 == 5 && Time < 430) {
                     int chosenSize = Main.rand.Next(0, 3);
-                    Projectile rock = Projectile.NewProjectileDirect(NPC.GetSource_FromThis(), Target.Center + NPC.DirectionTo(Target.Center + Target.Velocity * 30).SafeNormalize(Vector2.Zero).RotatedByRandom(1.6f) * Main.rand.Next(1300, 1600), Vector2.Zero, ModContent.ProjectileType<ThrowableChunk>(), GetDamage(6 + chosenSize), 0);
+                    Projectile rock = Projectile.NewProjectileDirect(NPC.GetSource_FromThis(), Target.Center + NPC.DirectionTo(Target.Center + Target.Velocity * 30).SafeNormalize(Vector2.Zero).RotatedByRandom(1.6f) * Main.rand.Next(4000, 4800), Vector2.Zero, ModContent.ProjectileType<ThrowableChunk>(), GetDamage(6 + chosenSize), 0);
                     rock.ai[1] = chosenSize;
                 }
 
@@ -1041,6 +1056,27 @@ namespace CalamityHunt.Content.NPCs.Bosses.GoozmaBoss
 
                 spriteBatch.End();
                 spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, Main.DefaultSamplerState, DepthStencilState.None, Main.Rasterizer, null, Main.Transform);
+            }
+
+            if (Attack == (int)AttackList.BlackHole && Time < 570 && Time > 50) {
+
+                Texture2D claw = TextureAssets.MagicPixel.Value;
+                int screenWidthD2 = (int)(Main.screenWidth / 24);
+                int screenHeightD2 = (int)(Main.screenHeight / 24);
+                Point playerPos = Main.LocalPlayer.position.ToTileCoordinates();
+                for (int i = playerPos.X - screenWidthD2; i < playerPos.X + screenWidthD2; i++) {
+                    for (int j = playerPos.Y - screenHeightD2; j < playerPos.Y + screenHeightD2; j++) {
+                        Tile t = Framing.GetTileSafely(new Point(i, j));
+                        Tile ta = Framing.GetTileSafely(new Point(i, j - 1));
+
+                        Tile tr = Framing.GetTileSafely(new Point(i + 1, j));
+                        Tile tl = Framing.GetTileSafely(new Point(i - 1, j));
+                        Tile td = Framing.GetTileSafely(new Point(i, j + 1));
+                        if (WorldGen.SolidOrSlopedTile(t) && (!WorldGen.SolidOrSlopedTile(ta) || !WorldGen.SolidOrSlopedTile(tl) || !WorldGen.SolidOrSlopedTile(td) || !WorldGen.SolidOrSlopedTile(tr))) {
+                            Main.EntitySpriteDraw(claw, new Vector2(i * 16, j * 16) - Main.screenPosition, new Rectangle(0, 0, 16, 16), Color.Orange, 0, Vector2.Zero, 1f, 0, 0);
+                        }
+                    }
+                }
             }
 
             return false;

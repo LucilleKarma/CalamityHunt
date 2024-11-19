@@ -36,7 +36,7 @@ namespace CalamityHunt.Content.NPCs.Bosses.GoozmaBoss
             NPCID.Sets.SpecificDebuffImmunity[Type][BuffID.Poisoned] = true;
             NPCID.Sets.SpecificDebuffImmunity[Type][BuffID.Confused] = true;
             if (Common.ModCompatibility.Calamity.IsLoaded) {
-                NPCID.Sets.SpecificDebuffImmunity[Type][Common.ModCompatibility.Calamity.Mod.Find<ModBuff>("MiracleBlight").Type] = true;
+                NPCID.Sets.SpecificDebuffImmunity[Type][Common.ModCompatibility.Calamity.Mod.Find<ModBuff>("VulnerabilityHex").Type] = true;
             }
 
             //NPCID.Sets.NPCBestiaryDrawModifiers drawModifiers = new NPCID.Sets.NPCBestiaryDrawModifiers(0) {  };
@@ -395,7 +395,8 @@ namespace CalamityHunt.Content.NPCs.Bosses.GoozmaBoss
         private void RockPillar()
         {
             int spikeCount = (int)DifficultyBasedValue(2, 3, 3, 4, master: 3, masterrev: 4, masterdeath: 6);
-            int spikeTime = (int)DifficultyBasedValue(140, 130, 120, 120, master: 120, masterrev: 110, masterdeath: 100);
+            int telegraphTime = 80;
+            int spikeTime = telegraphTime + (int)DifficultyBasedValue(30, 20, 10, 10, master: 10, masterrev: 0, masterdeath: 0);
 
             NPC.dontTakeDamage = true;
 
@@ -450,20 +451,20 @@ namespace CalamityHunt.Content.NPCs.Bosses.GoozmaBoss
                         Vector2 position = saveTarget + new Vector2(0, MathHelper.Lerp(100, 1600, i / (float)spikeNumber));
                         float randRot = Main.rand.NextFloat(-0.4f, 0.4f);
                         Projectile leftSpike = Projectile.NewProjectileDirect(NPC.GetSource_FromAI(), position + new Vector2(182, Main.rand.Next(-8, 8)), (-Vector2.UnitX).RotatedByRandom(0.06f).RotatedBy(randRot), ModContent.ProjectileType<EbonstoneTooth>(), GetDamage(4), 0);
-                        leftSpike.ai[0] = -60 + Main.rand.Next(-4, 2) + (int)(i / (float)spikeNumber * 15f);
-                        leftSpike.ai[1] = 65 + Main.rand.Next(-2, 4);
+                        leftSpike.ai[0] = -telegraphTime + Main.rand.Next(-4, 2) + (int)(i / (float)spikeNumber * 15f);
+                        leftSpike.ai[1] = 35 + Main.rand.Next(-2, 4);
                         Projectile rightSpike = Projectile.NewProjectileDirect(NPC.GetSource_FromAI(), position + new Vector2(-182, Main.rand.Next(-8, 8)), Vector2.UnitX.RotatedByRandom(0.06f).RotatedBy(-randRot), ModContent.ProjectileType<EbonstoneTooth>(), GetDamage(4), 0);
-                        rightSpike.ai[0] = -60 + Main.rand.Next(-4, 2) + (int)(i / (float)spikeNumber * 15f);
-                        rightSpike.ai[1] = 65 + Main.rand.Next(-2, 4);
+                        rightSpike.ai[0] = -telegraphTime + Main.rand.Next(-4, 2) + (int)(i / (float)spikeNumber * 15f);
+                        rightSpike.ai[1] = 35 + Main.rand.Next(-2, 4);
                     }
                 }
 
                 if (Time >= 150 && Time <= 150 + spikeCount * spikeTime) {
-                    if ((Time - 150) % spikeTime == 30) {
+                    if ((Time - 150) % spikeTime == 20) {
                         SoundStyle spiking = AssetDirectory.Sounds.GoozmaMinions.EbonstoneToothTelegraph;
                         SoundEngine.PlaySound(spiking, Main.LocalPlayer.MountedCenter);
                     }
-                    if ((Time - 150) % spikeTime > 55 && (Time - 150) % spikeTime < 61) {
+                    if ((Time - 150) % spikeTime > 55 && (Time - 150) % spikeTime == (telegraphTime - 1)) {
                         SoundStyle spiked = AssetDirectory.Sounds.GoozmaMinions.EbonstoneToothEmerge;
                         SoundEngine.PlaySound(spiked, Main.LocalPlayer.MountedCenter);
                     }

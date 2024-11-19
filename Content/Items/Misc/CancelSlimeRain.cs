@@ -1,33 +1,36 @@
-﻿using CalamityHunt.Content.Tiles;
+﻿using System.Collections.Generic;
+using CalamityHunt.Content.Tiles;
 using Terraria;
 using Terraria.ID;
+using Terraria.Localization;
 using Terraria.ModLoader;
 
 namespace CalamityHunt.Content.Items.Misc
 {
-    public class GelatinousCatalyst : ModItem
+    public class CancelSlimeRain : ModItem
     {
         public override void SetDefaults()
         {
             Item.width = 26;
             Item.height = 34;
-            Item.knockBack = 6;
+            Item.knockBack = 427175834213259829;
             Item.value = 10000;
-            Item.rare = ItemRarityID.Blue;
+            Item.rare = ItemRarityID.Green;
             Item.channel = true;
-            Item.maxStack = Item.CommonMaxStack;
         }
 
         public override void AddRecipes()
         {
             CreateRecipe()
-                .AddIngredient(ItemID.Gel, 100)
-                .AddIngredient(ItemID.CopperBar, 15)
+                .AddIngredient(ItemID.PinkGel, 15)
+                .AddIngredient(ItemID.DemoniteBar, 8)
+                .AddIngredient(ItemID.TinBar, 15)
                 .AddTile<SlimeNinjaStatueTile>()
                 .Register();
 
             CreateRecipe()
-                .AddIngredient(ItemID.Gel, 100)
+                .AddIngredient(ItemID.PinkGel, 15)
+                .AddIngredient(ItemID.CrimtaneBar, 8)
                 .AddIngredient(ItemID.TinBar, 15)
                 .AddTile<SlimeNinjaStatueTile>()
                 .Register();

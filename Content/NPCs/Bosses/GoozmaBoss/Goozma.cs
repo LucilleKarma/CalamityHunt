@@ -506,6 +506,7 @@ public partial class Goozma : ModNPC, ISubjectOfNPC<Goozma>
                     switch (currentSlime) {
                         //ebonian
                         case 0:
+                            NPC.damage = 0;
                             switch (ActiveSlime.ai[1]) {
                                 case 0:
 
@@ -541,6 +542,7 @@ public partial class Goozma : ModNPC, ISubjectOfNPC<Goozma>
 
                         //divine
                         case 1:
+                            NPC.damage = 0;
                             switch (ActiveSlime.ai[1]) {
                                 case 0:
 
@@ -572,6 +574,7 @@ public partial class Goozma : ModNPC, ISubjectOfNPC<Goozma>
 
                         //crimulan
                         case 2:
+                            NPC.damage = 0;
                             switch (ActiveSlime.ai[1]) {
                                 case 0:
 
@@ -644,6 +647,7 @@ public partial class Goozma : ModNPC, ISubjectOfNPC<Goozma>
                                     if (Time < 590) {
                                         SortedProjectileAttack(ActiveSlime.Center, SortedProjectileAttackTypes.StellarTaunt);
                                     }
+                                    NPC.damage = 0;
 
                                     break;
                             }
@@ -678,7 +682,7 @@ public partial class Goozma : ModNPC, ISubjectOfNPC<Goozma>
                 //    NPC.life = (int)(NPC.lifeMax * 0.33f);
                 //}
                 NPC.life = 1 + (int)((float)Math.Pow(Utils.GetLerpValue(300, 530, Time, true), 3) * (NPC.lifeMax - 1));
-                eyePower = Vector2.SmoothStep(Vector2.One * 1.2f, new Vector2(1.5f, 1.45f), Utils.GetLerpValue(300, 500, Time, true));
+                eyePower = Vector2.SmoothStep(Vector2.One * 0.8f, Vector2.One * 0.9f, Utils.GetLerpValue(300, 500, Time, true));
 
                 if (Time < 15) {
                     KillSlime(currentSlime);
@@ -1960,7 +1964,7 @@ public partial class Goozma : ModNPC, ISubjectOfNPC<Goozma>
                 //}
 
                 if (Time % 130 == 10) {
-                    if (Main.netMode != NetmodeID.MultiplayerClient) Projectile.NewProjectileDirect(NPC.GetSource_FromAI(), NPC.Center, NPC.DirectionTo(targetPos).SafeNormalize(Vector2.Zero).RotatedByRandom(1.3f) * NPC.Distance(targetPos) * 0.0016f * Main.rand.NextFloat(0.9f, 1.2f), ModContent.ProjectileType<SlimeBomb>(), GetDamage(2), 0);
+                    if (Main.netMode != NetmodeID.MultiplayerClient) Projectile.NewProjectileDirect(NPC.GetSource_FromAI(), NPC.Center, -8 * (NPC.DirectionTo(targetPos).SafeNormalize(Vector2.Zero).RotatedByRandom(1.3f) * NPC.Distance(targetPos) * 0.0016f * Main.rand.NextFloat(0.9f, 1.2f)), ModContent.ProjectileType<SlimeBomb>(), GetDamage(2), 0);
                 }
 
                 break;
