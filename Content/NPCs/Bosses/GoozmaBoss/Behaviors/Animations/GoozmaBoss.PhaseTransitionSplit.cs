@@ -240,7 +240,7 @@ namespace CalamityHunt.Content.NPCs.Bosses.GoozmaBoss
             Texture2D sclera = AssetDirectory.Textures.Goozma.Sclera.Value;
             Texture2D godEye = AssetDirectory.Textures.ChromaticSoulEye.Value;
 
-            if (Phase == 1 && Time >= 50) {
+            if (Phase == 1 && Time >= PhaseTransitionSplit_ExplodeTime) {
                 eyeScale *= MathF.Cbrt(Utils.GetLerpValue(-10f, 30f, Time - PhaseTransitionSplit_ReformDelay, true));
                 float eyeFlash = Utils.GetLerpValue(0f, 60f, Time - PhaseTransitionSplit_ReformDelay, true);
 
